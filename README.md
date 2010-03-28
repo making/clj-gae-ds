@@ -20,6 +20,7 @@ to your project.clj
 
 See test code.
 
+When use this library in REPL, execute (use 'am.ik.clj_gae_ds.test-utils) and (setup-helper) at first.
 
 ## License ##
 
