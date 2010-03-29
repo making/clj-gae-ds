@@ -22,6 +22,8 @@ See test code.
 
 When use this library in REPL, execute (use 'am.ik.clj_gae_ds.test-utils) and (setup-helper) at first.
 
+This library is tested on only MacOSX 10.6.
+
 ## License ##
 
 Eclipse Public License - v 1.0
