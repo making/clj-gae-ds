@@ -14,5 +14,5 @@
                      ;; [leiningen/lein-swank "1.1.0"]
                      [lein-clojars "0.5.0-SNAPSHOT"]
                      ] 
-  :namespaces [am.ik.clj_gae_ds.core
-               am.ik.clj_gae_ds.test-utils])
+  :namespaces [am.ik.clj-gae-ds.core
+               am.ik.clj-gae-ds.test-utils])

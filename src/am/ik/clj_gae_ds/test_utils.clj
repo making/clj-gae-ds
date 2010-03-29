@@ -1,4 +1,4 @@
-(ns am.ik.clj_gae_ds.test-utils
+(ns am.ik.clj-gae-ds.test-utils
   (:use [clojure.test]
         [clojure.contrib.singleton])
   (:import [com.google.appengine.tools.development.testing 

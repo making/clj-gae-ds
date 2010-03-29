@@ -1,4 +1,4 @@
-(ns am.ik.clj_gae_ds.core
+(ns am.ik.clj-gae-ds.core
   (:use [clojure.test]
         [clojure.contrib.singleton]
         [clojure.contrib.seq-utils])
@@ -6,8 +6,7 @@
             DatastoreServiceFactory DatastoreService 
             Entity Key KeyFactory KeyRange
             Query Query$FilterOperator PreparedQuery
-            Transaction]
-           ))
+            Transaction]))
 (def 
  #^{:arglists '([])
     :doc "get DatastoreService. This method returns singleton instance of the service."} 
