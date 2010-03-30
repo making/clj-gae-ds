@@ -1,4 +1,4 @@
-(defproject am.ik/clj-gae-ds "0.1.0-SNAPSHOT"
+(defproject am.ik/clj-gae-ds "0.1.0"
   :description "a datastore library on Google App Engine for Clojure"
   :repositories {"gaejtools" "http://gaejtools.sourceforge.jp/maven/repository",
                  "maven.seasar.org" "http://maven.seasar.org/maven2"}
