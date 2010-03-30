@@ -79,25 +79,19 @@
 (defdstest test-ds-put
   (let [p1 (map-entity "person" :name "Bob" :age 20)
         p2 (map-entity "person" :name "John" :age 22)]
-    (try 
-     (is (instance? Key (ds-put p1)))
-     (is (instance? Key (ds-put p2)))
-     (is (= 2 (count (ds-put [p1 p2]))))
-     (is (= (ds-put [p1 p2]) (ds-put [p1 p2])))
-     (is (every? #(instance? Key %) (ds-put [p1 p2])))
-     (finally 
-      (ds-delete [(.getKey p1) (.getKey p1)])))))
+    (is (instance? Key (ds-put p1)))
+    (is (instance? Key (ds-put p2)))
+    (is (= 2 (count (ds-put [p1 p2]))))
+    (is (= (ds-put [p1 p2]) (ds-put [p1 p2])))
+    (is (every? #(instance? Key %) (ds-put [p1 p2])))))
+    
       
 (defdstest test-ds-get
-   (let [p1 (map-entity "person" :name "Bob" :age 20)
-         p2 (map-entity "person" :name "John" :age 22)]
-     (try 
-      (ds-put [p1 p2])
-      (is (= p1 (ds-get (create-key "person" (long 1)))))
-      (is (= p2 (ds-get (create-key "person" (long 2)))))
-      (finally 
-       (ds-delete [(.getKey p1) (.getKey p2)]) ; to escape warn on reflection
-       ))))
+  (let [p1 (map-entity "person" :name "Bob" :age 20)
+        p2 (map-entity "person" :name "John" :age 22)]
+    (ds-put [p1 p2])
+    (is (= p1 (ds-get (create-key "person" 1))))
+    (is (= p2 (ds-get (create-key "person" 2))))))
 
 (defdstest test-ds-delete
    (let [p1 (map-entity "person" :name "Bob" :age 20)
@@ -131,11 +125,29 @@
         p2 (map-entity "person" :name "John" :age 22)
         p3 (map-entity "person" :name "Smith" :age 25)
         p4 (map-entity "person" :name "Ken" :age 21)]
-    (try 
-     (ds-put [p1 p2 p3 p4])
-     (is (= 4 (count (query-seq (query "person")))))
-     (finally 
-      (ds-delete [(.getKey p1) (.getKey p2)])))))
+    (ds-put [p1 p2 p3 p4])
+    (is (= 4 (count (query-seq (query "person")))))))
+
+
+(defdstest test-count-entities
+  (let [p1 (map-entity "person" :name "Bob" :age 20)
+        p2 (map-entity "person" :name "John" :age 22)
+        p3 (map-entity "person" :name "Smith" :age 25)
+        p4 (map-entity "person" :name "Ken" :age 21)]
+    (is (= 0 (count-entities (query "person"))))
+    (ds-put [p1 p2 p3 p4])
+    (is (= 4 (count-entities (query "person"))))))
+
+(defdstest test-count-entities
+  (let [p1 (map-entity "person" :name "Bob" :age 20)
+        p2 (map-entity "person" :name "John" :age 22)
+        p3 (map-entity "person" :name "Smith" :age 25)
+        p4 (map-entity "person" :name "Ken" :age 21)]
+    (is (= 0 (count-entities (prepare (query "person")))))
+    (ds-put [p1 p2 p3 p4])
+    (is (= 4 (count-entities (prepare (query "person")))))))
+
+
 
 ;; not optimized in using with-transcation ...
 (set! *warn-on-reflection* false)

@@ -72,15 +72,25 @@
   ([kind-or-ancestor] (Query. kind-or-ancestor))
   ([kind ancestor] (Query. kind ancestor)))
 
-(defn prepare 
+(defn #^PreparedQuery prepare 
   "parepare query."
   [#^Query q]     
   (.prepare (get-service) q))
 
 (defn query-seq   
   "return sequence made from the result of query."
-  [#^DatastoreService #^Query q]
-  (lazy-seq (.asIterable (prepare q))))
+  ([#^Query q]
+     (lazy-seq (.asIterable (prepare q))))
+  ([#^Query q fetch-options]
+     (lazy-seq (.asIterable (prepare q) fetch-options))))
+
+(defmulti count-entities "return count of entities." class)
+
+(defmethod count-entities Query [q]
+  (.countEntities (prepare q)))
+
+(defmethod count-entities PreparedQuery [pq]
+  (.countEntities pq))
 
 ;; Datestore
 (defn ds-put 
