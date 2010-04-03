@@ -9,7 +9,8 @@
   (import [com.google.appengine.api.datastore 
            DatastoreServiceFactory DatastoreService 
            Entity Key KeyFactory KeyRange
-           Query Query$FilterOperator PreparedQuery
+           Query Query$FilterOperator Query$SortDirection 
+           PreparedQuery FetchOptions FetchOptions$Builder 
            Transaction])
   nil)
 
