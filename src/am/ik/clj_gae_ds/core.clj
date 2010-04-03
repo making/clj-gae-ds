@@ -5,7 +5,8 @@
   (:import [com.google.appengine.api.datastore 
             DatastoreServiceFactory DatastoreService 
             Entity Key KeyFactory KeyRange
-            Query Query$FilterOperator PreparedQuery
+            Query Query$FilterOperator Query$SortDirection 
+            PreparedQuery FetchOptions FetchOptions$Builder 
             Transaction]))
 (def 
  #^{:arglists '([])
@@ -66,11 +67,70 @@
   [#^Entity entity #^String key]
   (.getProperty entity key))
 
+
+(defn- #^String key->str 
+  "convert keyword to string. if key-or-str is not clojure.lang.Keyword, 
+   then use key-or-str directory."
+  [key-or-str]
+  (if (keyword? key-or-str) (name key-or-str) key-or-str))
+
 ;; Query
 (defn #^Query query 
   "create query."
   ([kind-or-ancestor] (Query. kind-or-ancestor))
   ([kind ancestor] (Query. kind ancestor)))
+
+(def #^{:arglists '([kind-or-ancestor] [kind ancestor])
+            :doc "aliase of (query)"}
+     q
+     query)
+
+(defn #^Query add-sort 
+  "add sort option to query.
+  ex. (add-sort (query \"Entity\") \"property\" :desc)
+      -> #<Query SELECT * FROM Entity ORDER BY property DESC>
+      (add-sort (query \"Entity\") \"property\" :asc)
+      -> #<Query SELECT * FROM Entity ORDER BY property>" 
+  [q prop-name asc-or-desc]
+  (.addSort q prop-name (cond (= asc-or-desc :desc) Query$SortDirection/DESCENDING 
+                             (= asc-or-desc :asc) Query$SortDirection/ASCENDING
+                             :else asc-or-desc)))
+
+(def #^{:arglists '([q prop-name asc-or-desc])
+            :doc "aliase of (add-sort)"}
+     srt 
+     #^Query
+     add-sort)
+
+(defn #^Query add-filter
+  "add filter option to query.
+   operator can be Keyword (:eq, :neq, :lt, :gt, :lte, :gte, :in)
+   or function (= not= > >= < <=)
+   ex. (add-filter (query \"Entity\") \"property\" :gt 100)
+       -> #<Query SELECT * FROM Entity WHERE property > 100>
+       (add-filter (query \"Entity\") \"property\" not= 100)
+       -> #<Query SELECT * FROM Entity WHERE property != 100>"
+  [q prop-name operator value]
+  (.addFilter q prop-name (condp = operator 
+                            = Query$FilterOperator/EQUAL
+                            not= Query$FilterOperator/NOT_EQUAL
+                            > Query$FilterOperator/GREATER_THAN
+                            >= Query$FilterOperator/GREATER_THAN_OR_EQUAL
+                            < Query$FilterOperator/LESS_THAN
+                            <= Query$FilterOperator/LESS_THAN_OR_EQUAL
+                            :eq Query$FilterOperator/EQUAL
+                            :neq Query$FilterOperator/NOT_EQUAL
+                            :gt Query$FilterOperator/GREATER_THAN
+                            :gte Query$FilterOperator/GREATER_THAN_OR_EQUAL
+                            :lt Query$FilterOperator/LESS_THAN
+                            :lte Query$FilterOperator/LESS_THAN_OR_EQUAL
+                            :in Query$FilterOperator/IN
+                            :else operator) value))
+
+(def #^{:arglists '([q prop-name operator value])
+        :doc "aliase of (add-filter)"}
+     #^Query
+     flt add-filter)
 
 (defn #^PreparedQuery prepare 
   "parepare query."
