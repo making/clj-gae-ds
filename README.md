@@ -12,7 +12,7 @@ $ lein test
 
 Add
 
-[am.ik/clj-gae-ds "0.1.0"]
+[am.ik/clj-gae-ds "0.2.0-SNAPSHOT"]
 
 to your project.clj
 
