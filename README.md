@@ -20,7 +20,9 @@ to your project.clj
 
 See test code.
 
-When use this library in REPL, execute (use 'am.ik.clj-gae-ds.test-utils) and (setup-helper) at first.
+When use this library in REPL, execute (use 'am.ik.clj-gae-testing.test-utils) and (setup-helper) at first.
+
+You need execute "lein deps" before REPL.
 
 This library is tested on only MacOSX 10.6.
 
