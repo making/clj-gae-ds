@@ -1,5 +1,6 @@
 (ns am.ik.clj-gae-ds.core-test
-  (:use [am.ik.clj-gae-ds core test-utils] :reload-all)
+  (:use [am.ik.clj-gae-ds core] :reload-all)
+  (:use [am.ik.clj-gae-testing test-utils])
   (:use [clojure.test]))
 
 (set! *warn-on-reflection* true)
