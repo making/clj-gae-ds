@@ -7,8 +7,8 @@
 
 (import-deps)
 
-(defdstest test-get-service
-  (is (= (get-service) (get-service))))
+(defdstest test-get-ds-service
+  (is (= (get-ds-service) (get-ds-service))))
 
 (defdstest test-create-key
   (let [parent (create-key "parent" 100)]

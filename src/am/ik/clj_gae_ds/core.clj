@@ -12,7 +12,7 @@
  #^{:arglists '([])
     :doc "get DatastoreService. This method returns singleton instance of the service."} 
  #^DatastoreService
- get-service (global-singleton #(DatastoreServiceFactory/getDatastoreService)))
+ get-ds-service (global-singleton #(DatastoreServiceFactory/getDatastoreService)))
 
 ;; Key
 (defn #^Key create-key 
@@ -135,7 +135,7 @@
 (defn #^PreparedQuery prepare 
   "parepare query."
   [#^Query q]     
-  (.prepare (get-service) q))
+  (.prepare (get-ds-service) q))
 
 (defn query-seq   
   "return sequence made from the result of query."
@@ -156,9 +156,9 @@
 (defn ds-put 
   "put entity to datastore"
   ([entity-or-entities]
-     (.put (get-service) entity-or-entities))
+     (.put (get-ds-service) entity-or-entities))
   ([#^Transaction txn entity-or-entities]
-     (.put (get-service) txn entity-or-entities)))
+     (.put (get-ds-service) txn entity-or-entities)))
 
 (defn ds-get 
   "get entity from datastore.
@@ -166,22 +166,22 @@
   "
   ([key-or-keys]
      (try 
-      (.get (get-service) key-or-keys)
+      (.get (get-ds-service) key-or-keys)
       (catch Throwable e nil)))
   ([#^Transaction txn key-or-keys]
-     (try (.get (get-service) txn key-or-keys)
+     (try (.get (get-ds-service) txn key-or-keys)
           (catch Throwable e nil))))
 
 (defn ds-delete
   "delete entity from datastore"
   ([key-or-keys]
-     (.delete (get-service) (if (instance? Iterable key-or-keys) key-or-keys [key-or-keys])))
+     (.delete (get-ds-service) (if (instance? Iterable key-or-keys) key-or-keys [key-or-keys])))
   ([#^Transaction txn key-or-keys]
-     (.delete (get-service) txn (if (instance? Iterable key-or-keys) key-or-keys [key-or-keys]))))
+     (.delete (get-ds-service) txn (if (instance? Iterable key-or-keys) key-or-keys [key-or-keys]))))
 
 (defn #^KeyRange allocate-ids 
- ([kind num] (.allocateIds (get-service) kind num))
- ([parent-key kind num] (.allocateIds (get-service) parent-key kind num)))
+ ([kind num] (.allocateIds (get-ds-service) kind num))
+ ([parent-key kind num] (.allocateIds (get-ds-service) parent-key kind num)))
 
 (defn allocate-id-seq
  ([kind num] (lazy-seq (allocate-ids kind num)))
@@ -202,7 +202,7 @@
 
 (defmacro with-transcation [& body]
   (let [txn (gensym "txn")]
-  `(let [service# (get-service)
+  `(let [service# (get-ds-service)
          ~txn (.beginTransaction service#)]
      (try 
       (let [ret# (do ~@(insert-txn txn body))]
