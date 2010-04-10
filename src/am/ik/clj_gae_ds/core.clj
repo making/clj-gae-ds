@@ -199,7 +199,7 @@
           :else (cons (insert-txn txn (first sexp)) (insert-txn txn (rest sexp))))
     sexp))
 
-(defmacro with-transcation [& body]
+(defmacro with-transaction [& body]
   (let [txn (gensym "txn")]
   `(let [service# (get-ds-service)
          ~txn (.beginTransaction service#)]

@@ -151,19 +151,19 @@
 
 
 
-;; not optimized in using with-transcation ...
+;; not optimized in using with-transaction ...
 (set! *warn-on-reflection* false)
 
 (defdstest test-with-transaction1
   (is (empty? (query-seq (query "person"))))
-  (with-transcation 
+  (with-transaction 
     (ds-put (map-entity "person" :name "John")))
   (is (= 1 (count (query-seq (query "person"))))))
 
 (defdstest test-with-transaction2
   (is (empty? (query-seq (query "person"))))
   (try 
-   (with-transcation 
+   (with-transaction 
      (ds-put (map-entity "person" :name "John"))
      (/ 1 0) ; fail to commit
      )
@@ -173,7 +173,7 @@
 (defdstest test-with-transaction3
   (is (empty? (query-seq (query "person"))))  
   (ds-put (map-entity "person" :name "John"))
-  (with-transcation 
+  (with-transaction 
     (ds-delete (create-key "person" 1)))
   (is (empty? (query-seq (query "person")))))
 
@@ -181,7 +181,7 @@
   (is (empty? (query-seq (query "person"))))  
   (ds-put (map-entity "person" :name "John"))
   (try
-   (with-transcation 
+   (with-transaction 
      (ds-delete (create-key "person" 1))
      (/ 1 0) ; fail to commit
      )
@@ -193,7 +193,7 @@
   (is (empty? (query-seq (query "parent"))))
   (is (empty? (query-seq (query "child"))))
   (let [p (map-entity "parent" :name "Bob" :age 40)]
-    (with-transcation
+    (with-transaction
       (let [parent-key (ds-put p)
             child1 (map-entity "child" :name "John" :age 5 :parent parent-key)
             child2 (map-entity "child" :name "Kris" :age 3 :parent parent-key)]
@@ -207,7 +207,7 @@
   (is (empty? (query-seq (query "child"))))
   (let [p (map-entity "parent" :name "Bob" :age 40)]
     (try
-     (with-transcation
+     (with-transaction
        (let [parent-key (ds-put p)
              child1 (map-entity "child" :name "John" :age 5 :parent parent-key)
              child2 (map-entity "child" :name "Kris" :age 3 :parent parent-key)]
