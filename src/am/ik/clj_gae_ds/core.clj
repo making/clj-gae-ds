@@ -1,7 +1,6 @@
 (ns am.ik.clj-gae-ds.core
   (:use [clojure.test]
-        [clojure.contrib.singleton]
-        [clojure.contrib.seq-utils])
+        [clojure.contrib.singleton])
   (:import [com.google.appengine.api.datastore 
             DatastoreServiceFactory DatastoreService 
             Entity Key KeyFactory KeyRange
@@ -50,7 +49,7 @@
         keyname (:keyname init-map)
         parent (:parent init-map)
         entity-arity (filter #(not (nil? %)) [keyname parent])
-        m (apply array-map (flatten (vec (dissoc init-map :keyname :parent))))
+        m (apply array-map (mapcat identity (dissoc init-map :keyname :parent)))
         #^Entity entity (apply create-entity ename entity-arity)]
     (doseq [e m]
       (.setProperty entity (name (first e)) (last e)))

@@ -46,6 +46,7 @@
     (is (= "hoge" (get-prop (map-entity "article" :title "hoge" :date date) "title")))
     (is (= date (get-prop (map-entity "article" :title "hoge" :date date) "date")))
     (is (= date (get-prop (map-entity "article" :title "hoge" :date date) "date")))
+    (is (instance? java.util.List (get-prop (map-entity "artile" :tags ["foo" "bar"]) "tags")))
     (let [parent-key (create-key "article" 10)]
       (is (= parent-key (.getParent (map-entity "category" :name "foo" :parent parent-key))))
       (is (= "bar" (.getName (.getKey (map-entity "category" :name "foo" :keyname "bar")))))
