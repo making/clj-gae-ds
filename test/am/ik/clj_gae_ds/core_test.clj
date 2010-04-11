@@ -57,23 +57,48 @@
 (defdstest test-entity-map
   (let [date (java.util.Date.) 
         e (map-entity "article" :name "hoge" :date date)]
-    (= (is "hoge" ((entity-map e) "name")))
-    (= (is date ((entity-map e) "date")))
-    (= (nil? ((entity-map e) :parent)))
-    (= (nil? ((entity-map e) :keyname)))
+    (is (= "hoge" ((entity-map e) "name")))
+    (is (= date ((entity-map e) "date")))
+    (is (nil? ((entity-map e) :parent)))
+    (is (nil? ((entity-map e) :keyname)))
   (let [key (create-key "article" 100)
         e (map-entity "category" :name "foo" :parent key :keyname "kn")]
-    (= (is "foo" ((entity-map e) "name")))
-    (= (is key ((entity-map e) :parent)))
-    (= (is "kn" ((entity-map e) :keyname))))))
+    (is (= "foo" ((entity-map e) "name")))
+    (is (= key ((entity-map e) :parent)))
+    (is (= "kn" ((entity-map e) :keyname))))))
+
+(defdstest test-set-get-prop
+  (let [e (map-entity "article" :name "hoge")]
+    (set-prop e "foo" "xxx")
+    (sep e "bar" "yyy")
+    (set-prop e :aaa "zzz")
+    (sep e :bbb "www")
+    (is (= "hoge" (gep e "name")))
+    (is (= "hoge" (gep e :name)))
+    (is (= "xxx" (get-prop e "foo")))
+    (is (= "xxx" (gep e "foo")))
+    (is (= "yyy" (get-prop e "bar")))
+    (is (= "yyy" (gep e "bar")))
+    (is (= "xxx" (get-prop e :foo)))
+    (is (= "xxx" (gep e :foo)))
+    (is (= "yyy" (get-prop e :bar)))
+    (is (= "yyy" (gep e :bar)))
+    (is (= "zzz" (get-prop e "aaa")))
+    (is (= "zzz" (gep e "aaa")))
+    (is (= "www" (get-prop e "bbb")))
+    (is (= "www" (gep e "bbb")))
+    (is (= "zzz" (get-prop e :aaa)))
+    (is (= "zzz" (gep e :aaa)))
+    (is (= "www" (get-prop e :bbb)))
+    (is (= "www" (gep e :bbb)))))
 
 (defdstest test-query
   (let [ancestor (create-key "bar" 100)]
-    (= (instance? Query (query "foo")))
-    (= (instance? Query (query ancestor)))
-    (= (instance? Query (query "foo" ancestor)))
-    (= (is ancestor (.getAncestor (query ancestor))))
-    (= (is ancestor (.getAncestor (query "foo" ancestor))))))
+    (is (instance? Query (query "foo")))
+    (is (instance? Query (query ancestor)))
+    (is (instance? Query (query "foo" ancestor)))
+    (is (= ancestor (.getAncestor (query ancestor))))
+    (is (= ancestor (.getAncestor (query "foo" ancestor))))))
 
 (defdstest test-prepare 
   (= (instance? PreparedQuery (prepare (query "foo")))))
