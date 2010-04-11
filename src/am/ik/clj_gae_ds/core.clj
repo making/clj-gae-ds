@@ -61,17 +61,32 @@
   (into {:keyname (.getName (.getKey entity)) :parent (.getParent entity)}
         (.getProperties entity)))
 
-(defn get-prop   
-  "get property"
-  [#^Entity entity #^String key]
-  (.getProperty entity key))
-
 
 (defn- #^String key->str 
   "convert keyword to string. if key-or-str is not clojure.lang.Keyword, 
    then use key-or-str directory."
   [key-or-str]
   (if (keyword? key-or-str) (name key-or-str) key-or-str))
+
+(defn get-prop   
+  "get property"
+  [#^Entity entity #^String key]
+  (.getProperty entity (key->str key)))
+
+(def #^{:arglists '([entity key])
+            :doc "aliase of (get-prop)"}
+     gep
+     get-prop)
+
+(defn set-prop   
+  "set property"
+  [#^Entity entity key value]
+  (.setProperty entity (key->str key) value))
+
+(def #^{:arglists '([entity key value])
+            :doc "aliase of (set-prop)"}
+     sep
+     set-prop)
 
 ;; Query
 (defn #^Query query 
