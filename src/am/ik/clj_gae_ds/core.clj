@@ -8,9 +8,9 @@
             PreparedQuery FetchOptions FetchOptions$Builder 
             Transaction]))
 (def 
+ #^DatastoreService
  #^{:arglists '([])
     :doc "get DatastoreService. This method returns singleton instance of the service."} 
- #^DatastoreService
  get-ds-service (global-singleton #(DatastoreServiceFactory/getDatastoreService)))
 
 ;; Key
@@ -94,8 +94,9 @@
   ([kind-or-ancestor] (Query. kind-or-ancestor))
   ([kind ancestor] (Query. kind ancestor)))
 
-(def #^{:arglists '([kind-or-ancestor] [kind ancestor])
-            :doc "aliase of (query)"}
+(def #^Query 
+     #^{:arglists '([kind-or-ancestor] [kind ancestor])
+        :doc "aliase of (query)"}
      q
      query)
 
@@ -106,14 +107,14 @@
       (add-sort (query \"Entity\") \"property\" :asc)
       -> #<Query SELECT * FROM Entity ORDER BY property>" 
   [q prop-name asc-or-desc]
-  (.addSort q prop-name (cond (= asc-or-desc :desc) Query$SortDirection/DESCENDING 
-                             (= asc-or-desc :asc) Query$SortDirection/ASCENDING
-                             :else asc-or-desc)))
+  (.addSort q (key->str prop-name) (cond (= asc-or-desc :desc) Query$SortDirection/DESCENDING 
+                                         (= asc-or-desc :asc) Query$SortDirection/ASCENDING
+                                         :else asc-or-desc)))
 
-(def #^{:arglists '([q prop-name asc-or-desc])
-            :doc "aliase of (add-sort)"}
+(def #^Query
+     #^{:arglists '([q prop-name asc-or-desc])
+        :doc "aliase of (add-sort)"}
      srt 
-     #^Query
      add-sort)
 
 (defn #^Query add-filter
@@ -125,25 +126,24 @@
        (add-filter (query \"Entity\") \"property\" not= 100)
        -> #<Query SELECT * FROM Entity WHERE property != 100>"
   [q prop-name operator value]
-  (.addFilter q prop-name (condp = operator 
-                            = Query$FilterOperator/EQUAL
-                            not= Query$FilterOperator/NOT_EQUAL
-                            > Query$FilterOperator/GREATER_THAN
-                            >= Query$FilterOperator/GREATER_THAN_OR_EQUAL
-                            < Query$FilterOperator/LESS_THAN
-                            <= Query$FilterOperator/LESS_THAN_OR_EQUAL
-                            :eq Query$FilterOperator/EQUAL
-                            :neq Query$FilterOperator/NOT_EQUAL
-                            :gt Query$FilterOperator/GREATER_THAN
-                            :gte Query$FilterOperator/GREATER_THAN_OR_EQUAL
-                            :lt Query$FilterOperator/LESS_THAN
-                            :lte Query$FilterOperator/LESS_THAN_OR_EQUAL
-                            :in Query$FilterOperator/IN
-                            :else operator) value))
+  (.addFilter q (key->str prop-name) (condp = operator 
+                                       = Query$FilterOperator/EQUAL
+                                       not= Query$FilterOperator/NOT_EQUAL
+                                       > Query$FilterOperator/GREATER_THAN
+                                       >= Query$FilterOperator/GREATER_THAN_OR_EQUAL
+                                       < Query$FilterOperator/LESS_THAN
+                                       <= Query$FilterOperator/LESS_THAN_OR_EQUAL
+                                       :eq Query$FilterOperator/EQUAL
+                                       :neq Query$FilterOperator/NOT_EQUAL
+                                       :gt Query$FilterOperator/GREATER_THAN
+                                       :gte Query$FilterOperator/GREATER_THAN_OR_EQUAL
+                                       :lt Query$FilterOperator/LESS_THAN
+                                       :lte Query$FilterOperator/LESS_THAN_OR_EQUAL
+                                       :in Query$FilterOperator/IN) value))
 
-(def #^{:arglists '([q prop-name operator value])
+(def #^Query
+     #^{:arglists '([q prop-name operator value])
         :doc "aliase of (add-filter)"}
-     #^Query
      flt add-filter)
 
 (defn #^PreparedQuery prepare 
@@ -210,7 +210,7 @@
     (cond (= (count sexp) 1) (if (vector? sexp) [(insert-txn txn (first sexp))] 
                                  (list (insert-txn txn (first sexp))))
           (vector? sexp) (vec (cons (insert-txn txn (first sexp)) (insert-txn txn (rest sexp))))
-          (transactional-fn? (first sexp)) `(-> ~txn ~(cons (first sexp) (insert-txn txn (rest sexp))))          
+          (transactional-fn? (first sexp)) `(-> ~txn ~(cons (first sexp) (insert-txn txn (rest sexp))))
           :else (cons (insert-txn txn (first sexp)) (insert-txn txn (rest sexp))))
     sexp))
 
