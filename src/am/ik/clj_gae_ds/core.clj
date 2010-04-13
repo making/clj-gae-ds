@@ -28,6 +28,17 @@
   ([kind keyname-or-parent] (Entity. kind keyname-or-parent))
   ([kind #^String keyname #^Key parent] (Entity. kind (str keyname) parent)))
 
+(defn #^Key get-key
+  "returns the key of an Entity"
+  [#^Entity entity]
+  (.getKey entity))
+
+(defn #^Key get-parent
+  "returns the parent key of an Entity"
+  [#^Entity entity]
+  (.getParent entity))
+
+
 (defn #^Entity map-entity
   "create Entity from map.  
    (map-entity \"person\" :name \"Bob\" :age 25)
@@ -214,7 +225,10 @@
           :else (cons (insert-txn txn (first sexp)) (insert-txn txn (rest sexp))))
     sexp))
 
-(defmacro with-transaction [& body]
+(defmacro with-transaction 
+  "create transaction block. when use \"ds-put\", \"ds-get\", \"ds-delete\" in this block, 
+   automatically transaction begins and is committed after all processes normally finished or is rollbacked if failed."
+  [& body]  
   (let [txn (gensym "txn")]
   `(let [service# (get-ds-service)
          ~txn (.beginTransaction service#)]

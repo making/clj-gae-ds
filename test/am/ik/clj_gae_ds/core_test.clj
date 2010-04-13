@@ -144,6 +144,17 @@
       (finally 
        (ds-delete [(.getKey p1) (.getKey p2)])))))
 
+(defdstest test-get-key
+  (let [e (map-entity "e" :name "foo")
+        k (ds-put e)]
+    (is (= k (get-key e)))))
+
+(defdstest test-get-parent
+  (let [pk (create-key "p" 100)
+        e (map-entity "e" :name "foo" :parent pk)]
+    (ds-put e)
+    (is (= pk (get-parent e)))))
+
 (defdstest test-allocate-ids 
   (let [ids (allocate-ids "person" 20)]
     (is (= 1 (.getId (.getStart ids))))
