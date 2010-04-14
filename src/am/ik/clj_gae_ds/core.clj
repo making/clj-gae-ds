@@ -183,6 +183,28 @@
   ([#^Query q fetch-options]
      (lazy-seq (.asIterable (prepare q) fetch-options))))
 
+(defn #^FetchOptions fetch-options 
+  "return FetchOption which describe the limit, offset, 
+   and chunk size to be applied when executing a PreparedQuery.   
+   use these key to set limit, offset, chunk size, 
+   :limit       -> the maximum number of results the query will return.
+   :offset      -> the number of result to skip before returning any results.  default limit value is 0.
+   :chunk-size  -> determines the internal chunking strategy of the Iterator.
+
+   ex.
+   (fetch-options :limit 20 :offset 10 :chunk-size 10)
+   (fetch-options :limit 100 :offset 20)
+   (fetch-options :limit 100)
+   "
+  [& options]
+  (let [option-map (apply array-map options)
+        offset (Math/max 0 (or (:offset option-map) 0))
+        limit (:limit option-map)
+        chunk-size (:chunk-size option-map)
+        #^FetchOptions fetch (FetchOptions$Builder/withOffset offset)
+        #^FetchOptions limitted (if limit (.limit fetch limit) fetch)]
+    (if chunk-size (.chunkSize limitted chunk-size) limitted)))
+
 (defmulti count-entities "return count of entities." class)
 
 (defmethod count-entities Query [q]
