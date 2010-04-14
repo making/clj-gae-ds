@@ -29,15 +29,29 @@
   ([kind #^String keyname #^Key parent] (Entity. kind (str keyname) parent)))
 
 (defn #^Key get-key
-  "returns the key of an Entity"
+  "returns the key of an Entity."
   [#^Entity entity]
   (.getKey entity))
 
 (defn #^Key get-parent
-  "returns the parent key of an Entity"
+  "returns the parent key of an Entity."
   [#^Entity entity]
   (.getParent entity))
 
+(defn #^Long get-id 
+  "retuns the numeric identifier of a Key."
+  [#^Key key]
+  (.getId key))
+
+(defn #^String get-name
+  "retuns the name of a Key."
+  [#^Key key]
+  (.getName key))
+
+(defn #^String get-kind
+  "returns the kind of the Entity by a Key."
+  [#^Key key]
+  (.getKind key))
 
 (defn #^Entity map-entity
   "create Entity from map.  

@@ -155,6 +155,25 @@
     (ds-put e)
     (is (= pk (get-parent e)))))
 
+(defdstest test-get-id
+  (let [k1 (create-key "p" 100)
+        k2 (create-key "p" "xxx")]
+    (is (= 100 (get-id k1)))
+    (is (instance? Long (get-id k1)))
+    (is (= 0 (get-id k2)))))
+
+(defdstest test-get-name
+  (let [k1 (create-key "p" 100)
+        k2 (create-key "p" "xxx")]
+    (is (nil? (get-name k1)))
+    (is (= "xxx" (get-name k2)))))
+
+(defdstest test-get-kind
+  (let [k1 (create-key "p" 100)
+        k2 (create-key "p" "xxx")]
+    (is (= "p" (get-kind k1)))
+    (is (= "p" (get-kind k2)))))
+
 (defdstest test-allocate-ids 
   (let [ids (allocate-ids "person" 20)]
     (is (= 1 (.getId (.getStart ids))))
