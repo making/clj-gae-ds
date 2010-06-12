@@ -1,5 +1,4 @@
 (ns am.ik.clj-gae-ds.core-test
-  (:import [com.google.appengine.api.datastore Cursor])
   (:use [am.ik.clj-gae-ds core] :reload-all)
   (:use [am.ik.clj-gae-testing test-utils])
   (:use [clojure.test]))
