@@ -6,6 +6,7 @@
             Entity Key KeyFactory KeyRange
             Query Query$FilterOperator Query$SortDirection 
             PreparedQuery FetchOptions FetchOptions$Builder 
+            Cursor QueryResultList
             Transaction]))
 (def 
  #^DatastoreService
@@ -98,20 +99,10 @@
   [#^Entity entity #^String key]
   (.getProperty entity (key->str key)))
 
-(def #^{:arglists '([entity key])
-            :doc "aliase of (get-prop)"}
-     gep
-     get-prop)
-
 (defn set-prop   
   "set property"
   [#^Entity entity key value]
   (.setProperty entity (key->str key) value))
-
-(def #^{:arglists '([entity key value])
-            :doc "aliase of (set-prop)"}
-     sep
-     set-prop)
 
 ;; Query
 (defn #^Query query 
@@ -176,21 +167,49 @@
   [#^Query q]     
   (.prepare (get-ds-service) q))
 
-(defn query-seq   
-  "return sequence made from the result of query."
+(defmulti query-seq "return sequence made from the result of query." (fn [& args] (class (first args))))
+
+(defmethod query-seq 
+  PreparedQuery
+  ([#^PreparedQuery pq]
+     (lazy-seq (.asIterable pq)))
+  ([#^PreparedQuery pq fetch-options]
+     (lazy-seq (.asIterable pq fetch-options))))
+
+(defmethod query-seq 
+  Query
   ([#^Query q]
-     (lazy-seq (.asIterable (prepare q))))
+     (query-seq (prepare q)))
   ([#^Query q fetch-options]
-     (lazy-seq (.asIterable (prepare q) fetch-options))))
+     (query-seq (prepare q) fetch-options)))
+
+(defmulti query-seq-with-cursor 
+  "return map which contains sequence made from the result of query by :result key and 
+  the cursor of current point by :cursor.
+  ex. (query-seq-with-cursor (query \"entity\")) -> {:result (...), :cursor ..}
+  " 
+  (fn [& args] (class (first args))))
+
+(defmethod query-seq-with-cursor 
+  Query
+  [#^Query q fetch-options]
+  (query-seq-with-cursor (prepare q) fetch-options))
+
+(defmethod query-seq-with-cursor 
+  PreparedQuery
+  [#^PreparedQuery pq fetch-options]
+  (let [#^QueryResultList result-list (.asQueryResultList pq fetch-options)]
+    {:result (lazy-seq result-list) :cursor #^Cursor (.getCursor result-list)}))
 
 (defn #^FetchOptions fetch-options 
   "return FetchOption which describe the limit, offset, 
    and chunk size to be applied when executing a PreparedQuery.   
    use these key to set limit, offset, chunk size, 
-   :limit       -> the maximum number of results the query will return.
-   :offset      -> the number of result to skip before returning any results.  default limit value is 0.
-   :chunk-size  -> determines the internal chunking strategy of the Iterator.
-
+   :limit         -> the maximum number of results the query will return.
+   :offset        -> the number of result to skip before returning any results.  default offset value is 0.
+   :chunk-size    -> the chunk size which determines the internal chunking strategy of the Iterator.
+   :prefetch-size -> the number of entities to prefetch.
+   :cursor        -> the cursor to start the query from.
    ex.
    (fetch-options :limit 20 :offset 10 :chunk-size 10)
    (fetch-options :limit 100 :offset 20)
@@ -201,9 +220,14 @@
         offset (Math/max 0 (or (:offset option-map) 0))
         limit (:limit option-map)
         chunk-size (:chunk-size option-map)
+        prefetch-size (:prefetch-size option-map)
+        cursor (:cursor option-map)
         #^FetchOptions fetch (FetchOptions$Builder/withOffset offset)
-        #^FetchOptions limitted (if limit (.limit fetch limit) fetch)]
-    (if chunk-size (.chunkSize limitted chunk-size) limitted)))
+        #^FetchOptions limitted (if limit (.limit fetch limit) fetch)
+        #^FetchOptions chunk-sized (if chunk-size (.chunkSize limitted chunk-size) limitted)
+        #^FetchOptions prefetch-sized (if prefetch-size (.prefetchSize chunk-sized prefetch-size) chunk-sized)
+        #^FetchOptions cursored (if cursor (.cursor prefetch-sized cursor) prefetch-sized)]
+    cursored))
 
 (defmulti count-entities "return count of entities." class)
 
@@ -212,6 +236,13 @@
 
 (defmethod count-entities PreparedQuery [pq]
   (.countEntities pq))
+
+;; Cursor
+(defn #^String cursor-encode [#^Cursor cursor]
+  (.toWebSafeString cursor))
+
+(defn #^Cursor cursor-decode [str]
+  (Cursor/fromWebSafeString str))
 
 ;; Datestore
 (defn ds-put 

@@ -1,4 +1,5 @@
 (ns am.ik.clj-gae-ds.core-test
+  (:import [com.google.appengine.api.datastore Cursor])
   (:use [am.ik.clj-gae-ds core] :reload-all)
   (:use [am.ik.clj-gae-testing test-utils])
   (:use [clojure.test]))
@@ -70,27 +71,17 @@
 (defdstest test-set-get-prop
   (let [e (map-entity "article" :name "hoge")]
     (set-prop e "foo" "xxx")
-    (sep e "bar" "yyy")
+    (set-prop e "bar" "yyy")
     (set-prop e :aaa "zzz")
-    (sep e :bbb "www")
-    (is (= "hoge" (gep e "name")))
-    (is (= "hoge" (gep e :name)))
+    (set-prop e :bbb "www")
     (is (= "xxx" (get-prop e "foo")))
-    (is (= "xxx" (gep e "foo")))
     (is (= "yyy" (get-prop e "bar")))
-    (is (= "yyy" (gep e "bar")))
     (is (= "xxx" (get-prop e :foo)))
-    (is (= "xxx" (gep e :foo)))
     (is (= "yyy" (get-prop e :bar)))
-    (is (= "yyy" (gep e :bar)))
     (is (= "zzz" (get-prop e "aaa")))
-    (is (= "zzz" (gep e "aaa")))
     (is (= "www" (get-prop e "bbb")))
-    (is (= "www" (gep e "bbb")))
     (is (= "zzz" (get-prop e :aaa)))
-    (is (= "zzz" (gep e :aaa)))
-    (is (= "www" (get-prop e :bbb)))
-    (is (= "www" (gep e :bbb)))))
+    (is (= "www" (get-prop e :bbb)))))
 
 (defdstest test-query
   (let [ancestor (create-key "bar" 100)]
@@ -182,14 +173,44 @@
     (is (= 21 (.getId (.getStart ids))))
     (is (= 40 (.getId (.getEnd ids))))))
 
+(defdstest test-allocate-id-seq
+  (let [id-seq (allocate-id-seq "person" 20)]
+    (is (instance? Key (first id-seq)))
+    (is (= 1 (.getId #^Key (first id-seq))))
+    (is (= 20 (.getId #^Key (last id-seq)))))
+  (let [id-seq (allocate-id-seq "person" 20)]
+    (is (= 21 (.getId #^Key (first id-seq))))
+    (is (= 40 (.getId #^Key (last id-seq))))))
+
 (defdstest test-query-seq
   (let [p1 (map-entity "person" :name "Bob" :age 20)
         p2 (map-entity "person" :name "John" :age 22)
         p3 (map-entity "person" :name "Smith" :age 25)
         p4 (map-entity "person" :name "Ken" :age 21)]
     (ds-put [p1 p2 p3 p4])
-    (is (= 4 (count (query-seq (query "person")))))))
+    (is (= [p1 p2 p3 p4] (query-seq (query "person"))))
+    (is (= [p1 p2 p3 p4] (query-seq (prepare (query "person")))))
+    (is (= [p3] (query-seq (query "person") (fetch-options :offset 2 :limit 1))))
+    (is (= [p1 p2 p3] (query-seq (prepare (query "person")) (fetch-options :limit 3))))
+    ))
 
+(defdstest test-query-seq-with-cursor
+  (let [p1 (map-entity "person" :name "Bob" :age 20)
+        p2 (map-entity "person" :name "John" :age 22)
+        p3 (map-entity "person" :name "Smith" :age 25)
+        p4 (map-entity "person" :name "Ken" :age 21)]
+    (ds-put [p1 p2 p3 p4])
+    (let [query (q "person")
+          qsc1 (query-seq-with-cursor query (fetch-options :limit 2))
+          qsc2 (query-seq-with-cursor query (fetch-options :cursor (:cursor qsc1)))]
+      (is (= [p1 p2] (:result qsc1)))
+      (is (= [p3 p4] (:result qsc2))))
+    (let [pq (prepare (q "person"))
+          qsc1 (query-seq-with-cursor pq (fetch-options :limit 2))
+          qsc2 (query-seq-with-cursor pq (fetch-options :cursor (:cursor qsc1)))]
+      (is (= [p1 p2] (:result qsc1)))
+      (is (= [p3 p4] (:result qsc2))))
+    ))
 
 (defdstest test-count-entities
   (let [p1 (map-entity "person" :name "Bob" :age 20)
@@ -289,6 +310,52 @@
     (is (= (list n1 n2) (query-seq (flt (q "num") :val :lte 2))))
     (is (= (list n1 n2) (query-seq (flt (q "num") :val :in [1 2]))))
     (is (= (list n1) (query-seq (-> (q "num") (flt :val = 1)))))))
+
+(defdstest test-fetch-options
+  (is (= 0 (.getOffset (fetch-options))))
+  (let [cursor (:cursor (query-seq-with-cursor (q "num") (fetch-options :limit 2)))
+        fo (fetch-options :limit 20 :offset 10 :chunk-size 10 :prefetch-size 30 :cursor cursor)]
+    (is (= 20 (.getLimit fo)))
+    (is (= 10 (.getOffset fo)))
+    (is (= 10 (.getChunkSize fo)))
+    (is (= 30 (.getPrefetchSize fo)))
+    (is (= cursor (.getCursor fo))))
+  (let [fo (fetch-options :limit 20 :offset 10 :chunk-size 10 :prefetch-size 30)]
+    (is (= 20 (.getLimit fo)))
+    (is (= 10 (.getOffset fo)))
+    (is (= 10 (.getChunkSize fo)))
+    (is (= 30 (.getPrefetchSize fo)))
+    (is (nil? (.getCursor fo))))
+  (let [fo (fetch-options :limit 20 :offset 10 :chunk-size 10)]
+    (is (= 20 (.getLimit fo)))
+    (is (= 10 (.getOffset fo)))
+    (is (= 10 (.getChunkSize fo)))
+    (is (nil? (.getCursor fo)))
+    (is (nil? (.getPrefetchSize fo))))
+  (let [fo (fetch-options :limit 100 :offset 20)]
+    (is (= 100 (.getLimit fo)))
+    (is (= 20 (.getOffset fo)))
+    (is (nil? (.getChunkSize fo)))
+    (is (nil? (.getPrefetchSize fo)))
+    (is (nil? (.getCursor fo))))
+  (let [fo (fetch-options :limit 100)]
+    (is (= 100 (.getLimit fo)))
+    (is (= 0 (.getOffset fo)))
+    (is (nil? (.getChunkSize fo)))
+    (is (nil? (.getPrefetchSize fo)))
+    (is (nil? (.getCursor fo)))))
+
+(defdstest test-cursor-encode-decode
+  (let [p1 (map-entity "person" :name "Bob" :age 20)
+        p2 (map-entity "person" :name "John" :age 22)
+        p3 (map-entity "person" :name "Smith" :age 25)
+        p4 (map-entity "person" :name "Ken" :age 21)]
+    (ds-put [p1 p2 p3 p4])
+    (let [query (q "person")
+          qsc1 (query-seq-with-cursor query (fetch-options :limit 2))
+          cursor-string (cursor-encode (:cursor qsc1))
+          qsc2 (query-seq-with-cursor query (fetch-options :cursor (cursor-decode cursor-string)))]
+      (is (= [p3 p4] (:result qsc2))))))
 
 ;; not optimized in using with-transaction ...
 (set! *warn-on-reflection* false)
