@@ -143,7 +143,7 @@
        -> #<Query SELECT * FROM Entity WHERE property != 100>"
   [q prop-name operator value]
   (.addFilter q (key->str prop-name) (condp = operator 
-                                       = Query$FilterOperator/EQUAL
+					 = Query$FilterOperator/EQUAL
                                        not= Query$FilterOperator/NOT_EQUAL
                                        > Query$FilterOperator/GREATER_THAN
                                        >= Query$FilterOperator/GREATER_THAN_OR_EQUAL
@@ -168,26 +168,26 @@
   (.prepare (get-ds-service) q))
 
 (defprotocol Queries
-    (query-seq [q] [q fetch-options] "return sequence made from the result of query.")
-    (query-seq-with-cursor [q] [q fetch-options] "return map which contains sequence made from the result of query by :result key and 
+  (query-seq [q] [q fetch-options] "return sequence made from the result of query.")
+  (query-seq-with-cursor [q] [q fetch-options] "return map which contains sequence made from the result of query by :result key and 
   the cursor of current point by :cursor.
   ex. (query-seq-with-cursor (query \"entity\")) -> {:result (...), :cursor ..}
   ")
-    (count-entities [q] "return count of entities."))
+  (count-entities [q] "return count of entities."))
 
 (extend Query Queries
-    {:query-seq (fn ([#^Query q] (query-seq (prepare q)))
-                    ([#^Query q fetch-options] (query-seq (prepare q) fetch-options))),
-     :query-seq-with-cursor (fn [#^Query q fetch-options] (query-seq-with-cursor (prepare q) fetch-options)),
-     :count-entities (fn [#^Query q] (count-entities (prepare q)))})
+	{:query-seq (fn ([#^Query q] (query-seq (prepare q)))
+		      ([#^Query q fetch-options] (query-seq (prepare q) fetch-options))),
+	 :query-seq-with-cursor (fn [#^Query q fetch-options] (query-seq-with-cursor (prepare q) fetch-options)),
+	 :count-entities (fn [#^Query q] (count-entities (prepare q)))})
 
 (extend PreparedQuery Queries
-    {:query-seq (fn ([#^PreparedQuery pq] (lazy-seq (.asIterable pq)))
-                    ([#^PreparedQuery pq fetch-options] (lazy-seq (.asIterable pq fetch-options)))),
-     :query-seq-with-cursor (fn [#^PreparedQuery pq fetch-options] 
-                                (let [#^QueryResultList result-list (.asQueryResultList pq fetch-options)]
+	{:query-seq (fn ([#^PreparedQuery pq] (lazy-seq (.asIterable pq)))
+		      ([#^PreparedQuery pq fetch-options] (lazy-seq (.asIterable pq fetch-options)))),
+	 :query-seq-with-cursor (fn [#^PreparedQuery pq fetch-options] 
+				  (let [#^QueryResultList result-list (.asQueryResultList pq fetch-options)]
                                     {:result (lazy-seq result-list) :cursor #^Cursor (.getCursor result-list)})),
-     :count-entities (fn [#^PreparedQuery pq] (.countEntities pq))})
+	 :count-entities (fn [#^PreparedQuery pq] (.countEntities pq))})
 
 (defn #^FetchOptions fetch-options 
   "return FetchOption which describe the limit, offset, 
@@ -238,8 +238,8 @@
   "
   ([key-or-keys]
      (try 
-      (.get (get-ds-service) key-or-keys)
-      (catch Throwable e nil)))
+       (.get (get-ds-service) key-or-keys)
+       (catch Throwable e nil)))
   ([#^Transaction txn key-or-keys]
      (try (.get (get-ds-service) txn key-or-keys)
           (catch Throwable e nil))))
@@ -252,12 +252,12 @@
      (.delete (get-ds-service) txn (if (instance? Iterable key-or-keys) key-or-keys [key-or-keys]))))
 
 (defn #^KeyRange allocate-ids 
- ([kind num] (.allocateIds (get-ds-service) kind num))
- ([parent-key kind num] (.allocateIds (get-ds-service) parent-key kind num)))
+  ([kind num] (.allocateIds (get-ds-service) kind num))
+  ([parent-key kind num] (.allocateIds (get-ds-service) parent-key kind num)))
 
 (defn allocate-id-seq
- ([kind num] (lazy-seq (allocate-ids kind num)))
- ([parent-key kind num] (lazy-seq (allocate-ids parent-key kind num))))
+  ([kind num] (lazy-seq (allocate-ids kind num)))
+  ([parent-key kind num] (lazy-seq (allocate-ids parent-key kind num))))
 
 (defn- transactional-fn? [x]
   (or (= x 'ds-put) (= x 'ds-get ) (= x 'ds-delete)))
@@ -277,12 +277,12 @@
    automatically transaction begins and is committed after all processes normally finished or is rollbacked if failed."
   [& body]  
   (let [txn (gensym "txn")]
-  `(let [service# (get-ds-service)
-         ~txn (.beginTransaction service#)]
-     (try 
-      (let [ret# (do ~@(insert-txn txn body))]
-        (.commit ~txn)
-        ret#)
-      (finally 
-       (if (.isActive ~txn)
-         (.rollback ~txn)))))))
+    `(let [service# (get-ds-service)
+	   ~txn (.beginTransaction service#)]
+       (try 
+	 (let [ret# (do ~@(insert-txn txn body))]
+	   (.commit ~txn)
+	   ret#)
+	 (finally 
+	  (if (.isActive ~txn)
+	    (.rollback ~txn)))))))
