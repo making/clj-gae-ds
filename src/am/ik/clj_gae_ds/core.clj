@@ -9,13 +9,13 @@
             Cursor QueryResultList
             Transaction]))
 (def 
- #^DatastoreService
- #^{:arglists '([])
-    :doc "get DatastoreService. This method returns singleton instance of the service."} 
+ ^DatastoreService
+ ^{:arglists '([])
+   :doc "get DatastoreService. This method returns singleton instance of the service."} 
  get-ds-service (global-singleton #(DatastoreServiceFactory/getDatastoreService)))
 
 ;; Key
-(defn #^Key create-key 
+(defn ^Key create-key 
   "create key."
   ([parent kind id-or-name]
      (KeyFactory/createKey parent kind (if (integer? id-or-name) (long id-or-name) (str id-or-name))))
@@ -23,38 +23,38 @@
      (KeyFactory/createKey kind (if (integer? id-or-name) (long id-or-name) (str id-or-name)))))
 
 ;; Entity
-(defn #^Entity create-entity
+(defn ^Entity create-entity
   "create entity."
   ([kind] (Entity. kind))
   ([kind keyname-or-parent] (Entity. kind keyname-or-parent))
-  ([kind #^String keyname #^Key parent] (Entity. kind (str keyname) parent)))
+  ([kind ^String keyname ^Key parent] (Entity. kind (str keyname) parent)))
 
-(defn #^Key get-key
+(defn ^Key get-key
   "returns the key of an Entity."
-  [#^Entity entity]
+  [^Entity entity]
   (.getKey entity))
 
-(defn #^Key get-parent
+(defn ^Key get-parent
   "returns the parent key of an Entity."
-  [#^Entity entity]
+  [^Entity entity]
   (.getParent entity))
 
-(defn #^Long get-id 
+(defn ^Long get-id 
   "retuns the numeric identifier of a Key."
-  [#^Key key]
+  [^Key key]
   (.getId key))
 
-(defn #^String get-name
+(defn ^String get-name
   "retuns the name of a Key."
-  [#^Key key]
+  [^Key key]
   (.getName key))
 
-(defn #^String get-kind
+(defn ^String get-kind
   "returns the kind of the Entity by a Key."
-  [#^Key key]
+  [^Key key]
   (.getKind key))
 
-(defn #^Entity map-entity
+(defn ^Entity map-entity
   "create Entity from map.  
    (map-entity \"person\" :name \"Bob\" :age 25)
    -> #<Entity <Entity [person(no-id-yet)]:
@@ -76,19 +76,19 @@
         parent (:parent init-map)
         entity-arity (filter #(not (nil? %)) [keyname parent])
         m (apply array-map (mapcat identity (dissoc init-map :keyname :parent)))
-        #^Entity entity (apply create-entity ename entity-arity)]
+        ^Entity entity (apply create-entity ename entity-arity)]
     (doseq [e m]
       (.setProperty entity (name (first e)) (last e)))
     entity))
 
 (defn entity-map 
   "convert entity to map"
-  [#^Entity entity]
+  [^Entity entity]
   (into {:keyname (.getName (.getKey entity)) :parent (.getParent entity)}
         (.getProperties entity)))
 
 
-(defn- #^String key->str 
+(defn- ^String key->str 
   "convert keyword to string. if key-or-str is not clojure.lang.Keyword, 
    then use key-or-str directory."
   [key-or-str]
@@ -96,27 +96,27 @@
 
 (defn get-prop   
   "get property"
-  [#^Entity entity #^String key]
+  [^Entity entity ^String key]
   (.getProperty entity (key->str key)))
 
 (defn set-prop   
   "set property"
-  [#^Entity entity key value]
+  [^Entity entity key value]
   (.setProperty entity (key->str key) value))
 
 ;; Query
-(defn #^Query query 
+(defn ^Query query 
   "create query."
   ([kind-or-ancestor] (Query. kind-or-ancestor))
   ([kind ancestor] (Query. kind ancestor)))
 
-(def #^Query 
-     #^{:arglists '([kind-or-ancestor] [kind ancestor])
-        :doc "aliase of (query)"}
+(def ^Query 
+     ^{:arglists '([kind-or-ancestor] [kind ancestor])
+       :doc "aliase of (query)"}
      q
      query)
 
-(defn #^Query add-sort 
+(defn ^Query add-sort 
   "add sort option to query.
   ex. (add-sort (query \"Entity\") \"property\" :desc)
       -> #<Query SELECT * FROM Entity ORDER BY property DESC>
@@ -127,13 +127,13 @@
                                          (= asc-or-desc :asc) Query$SortDirection/ASCENDING
                                          :else asc-or-desc)))
 
-(def #^Query
-     #^{:arglists '([q prop-name asc-or-desc])
-        :doc "aliase of (add-sort)"}
+(def ^Query
+     ^{:arglists '([q prop-name asc-or-desc])
+       :doc "aliase of (add-sort)"}
      srt 
      add-sort)
 
-(defn #^Query add-filter
+(defn ^Query add-filter
   "add filter option to query.
    operator can be Keyword (:eq, :neq, :lt, :gt, :lte, :gte, :in)
    or function (= not= > >= < <=)
@@ -157,14 +157,14 @@
                                        :lte Query$FilterOperator/LESS_THAN_OR_EQUAL
                                        :in Query$FilterOperator/IN) value))
 
-(def #^Query
-     #^{:arglists '([q prop-name operator value])
-        :doc "aliase of (add-filter)"}
+(def ^Query
+     ^{:arglists '([q prop-name operator value])
+       :doc "aliase of (add-filter)"}
      flt add-filter)
 
-(defn #^PreparedQuery prepare 
+(defn ^PreparedQuery prepare 
   "parepare query."
-  [#^Query q]     
+  [^Query q]     
   (.prepare (get-ds-service) q))
 
 (defprotocol Queries
@@ -185,11 +185,11 @@
 	{:query-seq (fn ([pq] (lazy-seq (.asIterable pq)))
 		      ([pq fetch-options] (lazy-seq (.asIterable pq fetch-options)))),
 	 :query-seq-with-cursor (fn [pq fetch-options] 
-				  (let [#^QueryResultList result-list (.asQueryResultList pq fetch-options)]
-                                    {:result (lazy-seq result-list) :cursor #^Cursor (.getCursor result-list)})),
+				  (let [^QueryResultList result-list (.asQueryResultList pq fetch-options)]
+                                    {:result (lazy-seq result-list) :cursor ^Cursor (.getCursor result-list)})),
 	 :count-entities (fn [pq] (.countEntities pq))})
 
-(defn #^FetchOptions fetch-options 
+(defn ^FetchOptions fetch-options 
   "return FetchOption which describe the limit, offset, 
    and chunk size to be applied when executing a PreparedQuery.   
    use these key to set limit, offset, chunk size, 
@@ -210,18 +210,18 @@
         chunk-size (:chunk-size option-map)
         prefetch-size (:prefetch-size option-map)
         cursor (:cursor option-map)
-        #^FetchOptions fetch (FetchOptions$Builder/withOffset offset)
-        #^FetchOptions limitted (if limit (.limit fetch limit) fetch)
-        #^FetchOptions chunk-sized (if chunk-size (.chunkSize limitted chunk-size) limitted)
-        #^FetchOptions prefetch-sized (if prefetch-size (.prefetchSize chunk-sized prefetch-size) chunk-sized)
-        #^FetchOptions cursored (if cursor (.cursor prefetch-sized cursor) prefetch-sized)]
+        ^FetchOptions fetch (FetchOptions$Builder/withOffset offset)
+        ^FetchOptions limitted (if limit (.limit fetch limit) fetch)
+        ^FetchOptions chunk-sized (if chunk-size (.chunkSize limitted chunk-size) limitted)
+        ^FetchOptions prefetch-sized (if prefetch-size (.prefetchSize chunk-sized prefetch-size) chunk-sized)
+        ^FetchOptions cursored (if cursor (.cursor prefetch-sized cursor) prefetch-sized)]
     cursored))
 
 ;; Cursor
-(defn #^String cursor-encode [#^Cursor cursor]
+(defn ^String cursor-encode [^Cursor cursor]
   (.toWebSafeString cursor))
 
-(defn #^Cursor cursor-decode [str]
+(defn ^Cursor cursor-decode [str]
   (Cursor/fromWebSafeString str))
 
 ;; Datestore
@@ -229,7 +229,7 @@
   "put entity to datastore"
   ([entity-or-entities]
      (.put (get-ds-service) entity-or-entities))
-  ([#^Transaction txn entity-or-entities]
+  ([^Transaction txn entity-or-entities]
      (.put (get-ds-service) txn entity-or-entities)))
 
 (defn ds-get 
@@ -240,7 +240,7 @@
      (try 
        (.get (get-ds-service) key-or-keys)
        (catch Throwable e nil)))
-  ([#^Transaction txn key-or-keys]
+  ([^Transaction txn key-or-keys]
      (try (.get (get-ds-service) txn key-or-keys)
           (catch Throwable e nil))))
 
@@ -248,10 +248,10 @@
   "delete entity from datastore"
   ([key-or-keys]
      (.delete (get-ds-service) (if (instance? Iterable key-or-keys) key-or-keys [key-or-keys])))
-  ([#^Transaction txn key-or-keys]
+  ([^Transaction txn key-or-keys]
      (.delete (get-ds-service) txn (if (instance? Iterable key-or-keys) key-or-keys [key-or-keys]))))
 
-(defn #^KeyRange allocate-ids 
+(defn ^KeyRange allocate-ids 
   ([kind num] (.allocateIds (get-ds-service) kind num))
   ([parent-key kind num] (.allocateIds (get-ds-service) parent-key kind num)))
 
