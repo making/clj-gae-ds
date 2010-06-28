@@ -176,18 +176,18 @@
   (count-entities [q] "return count of entities."))
 
 (extend Query Queries
-	{:query-seq (fn ([#^Query q] (query-seq (prepare q)))
-		      ([#^Query q fetch-options] (query-seq (prepare q) fetch-options))),
-	 :query-seq-with-cursor (fn [#^Query q fetch-options] (query-seq-with-cursor (prepare q) fetch-options)),
-	 :count-entities (fn [#^Query q] (count-entities (prepare q)))})
+	{:query-seq (fn ([q] (query-seq (prepare q)))
+		      ([q fetch-options] (query-seq (prepare q) fetch-options))),
+	 :query-seq-with-cursor (fn [q fetch-options] (query-seq-with-cursor (prepare q) fetch-options)),
+	 :count-entities (fn [q] (count-entities (prepare q)))})
 
 (extend PreparedQuery Queries
-	{:query-seq (fn ([#^PreparedQuery pq] (lazy-seq (.asIterable pq)))
-		      ([#^PreparedQuery pq fetch-options] (lazy-seq (.asIterable pq fetch-options)))),
-	 :query-seq-with-cursor (fn [#^PreparedQuery pq fetch-options] 
+	{:query-seq (fn ([pq] (lazy-seq (.asIterable pq)))
+		      ([pq fetch-options] (lazy-seq (.asIterable pq fetch-options)))),
+	 :query-seq-with-cursor (fn [pq fetch-options] 
 				  (let [#^QueryResultList result-list (.asQueryResultList pq fetch-options)]
                                     {:result (lazy-seq result-list) :cursor #^Cursor (.getCursor result-list)})),
-	 :count-entities (fn [#^PreparedQuery pq] (.countEntities pq))})
+	 :count-entities (fn [pq] (.countEntities pq))})
 
 (defn #^FetchOptions fetch-options 
   "return FetchOption which describe the limit, offset, 
