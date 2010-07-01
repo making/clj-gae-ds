@@ -225,31 +225,35 @@
   (Cursor/fromWebSafeString str))
 
 ;; Datestore
+
+(def ^{:doc "The current datastore transaction."} *transaction* nil)
+
 (defn ds-put 
   "put entity to datastore"
   ([entity-or-entities]
-     (.put (get-ds-service) entity-or-entities))
-  ([^Transaction txn entity-or-entities]
-     (.put (get-ds-service) txn entity-or-entities)))
+     (.put (get-ds-service) *transaction* entity-or-entities))
+  ([^Transaction txn entity-or-entities]     
+     (binding [*transaction* txn]
+       (ds-put entity-or-entities))))
 
 (defn ds-get 
   "get entity from datastore.
-   If entity is not found, return nil.
-  "
+   If entity is not found, return nil."
   ([key-or-keys]
      (try 
-       (.get (get-ds-service) key-or-keys)
+       (.get (get-ds-service) *transaction* key-or-keys)
        (catch Throwable e nil)))
   ([^Transaction txn key-or-keys]
-     (try (.get (get-ds-service) txn key-or-keys)
-          (catch Throwable e nil))))
+     (binding [*transaction* txn]
+       (ds-get key-or-keys))))
 
 (defn ds-delete
   "delete entity from datastore"
   ([key-or-keys]
-     (.delete (get-ds-service) (if (instance? Iterable key-or-keys) key-or-keys [key-or-keys])))
+     (.delete (get-ds-service) *transaction* (if (instance? Iterable key-or-keys) key-or-keys [key-or-keys])))
   ([^Transaction txn key-or-keys]
-     (.delete (get-ds-service) txn (if (instance? Iterable key-or-keys) key-or-keys [key-or-keys]))))
+     (binding [*transaction* txn]
+       (ds-delete key-or-keys))))
 
 (defn ^KeyRange allocate-ids 
   ([kind num] (.allocateIds (get-ds-service) kind num))
@@ -259,19 +263,6 @@
   ([kind num] (lazy-seq (allocate-ids kind num)))
   ([parent-key kind num] (lazy-seq (allocate-ids parent-key kind num))))
 
-(defn- transactional-fn? [x]
-  (or (= x 'ds-put) (= x 'ds-get ) (= x 'ds-delete)))
-
-(defn- insert-txn [txn sexp]  
-  "push front transation object before datastore operation"
-  (if (and (coll? sexp) (not-empty sexp))
-    (cond (= (count sexp) 1) (if (vector? sexp) [(insert-txn txn (first sexp))] 
-                                 (list (insert-txn txn (first sexp))))
-          (vector? sexp) (vec (cons (insert-txn txn (first sexp)) (insert-txn txn (rest sexp))))
-          (transactional-fn? (first sexp)) `(-> ~txn ~(cons (first sexp) (insert-txn txn (rest sexp))))
-          :else (cons (insert-txn txn (first sexp)) (insert-txn txn (rest sexp))))
-    sexp))
-
 (defmacro with-transaction 
   "create transaction block. when use \"ds-put\", \"ds-get\", \"ds-delete\" in this block, 
    automatically transaction begins and is committed after all processes normally finished or is rollbacked if failed."
@@ -280,7 +271,7 @@
     `(let [service# (get-ds-service)
 	   ~txn (.beginTransaction service#)]
        (try 
-	 (let [ret# (do ~@(insert-txn txn body))]
+	 (let [ret# (binding [*transaction* ~txn] ~@body)]
 	   (.commit ~txn)
 	   ret#)
 	 (finally 
