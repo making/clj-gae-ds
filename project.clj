@@ -3,8 +3,8 @@
   :repositories {"maven.seasar.org" "http://maven.seasar.org/maven2",}
   :dependencies [[org.clojure/clojure "1.2.0-master-SNAPSHOT"]
                  [org.clojure/clojure-contrib "1.2.0-SNAPSHOT"]
-                 [com.google.appengine/appengine-api-1.0-sdk "1.3.4"]]
+                 [com.google.appengine/appengine-api-1.0-sdk "1.3.5"]]
   :dev-dependencies [[am.ik/clj-gae-testing "0.2.0-SNAPSHOT"]
-                     [leiningen/lein-swank "1.1.0"]
+                     ;; [leiningen/lein-swank "1.2.0-SNAPSHOT"]
                      [lein-clojars "0.5.0-SNAPSHOT"]]
   :namespaces [am.ik.clj-gae-ds.core])
