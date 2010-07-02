@@ -24,8 +24,6 @@ When use this library in REPL, execute (use 'am.ik.clj-gae-testing.test-utils) a
 
 You need execute "lein deps" before REPL.
 
-This library is tested on only MacOSX 10.6.
-
 ## License ##
 
 Eclipse Public License - v 1.0
