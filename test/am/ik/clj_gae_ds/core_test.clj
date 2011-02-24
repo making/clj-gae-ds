@@ -429,6 +429,9 @@
         entity (map-entity kind :data data)]
     (ds-put entity)
     (is (= data
-           (get-prop (ds-get (create-key kind 1)) :data)))))
+           (get-prop (ds-get (create-key kind 1)) :data)))
+    (is (= data
+           (get (entity-map (ds-get (create-key kind 1))) "data")))))
+
 
 ;; (run-tests)

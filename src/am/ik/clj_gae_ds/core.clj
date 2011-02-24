@@ -99,7 +99,8 @@
   "convert entity to map"
   [^Entity entity]
   (into {:keyname (.getName (.getKey entity)) :parent (.getParent entity)}
-        (decode-prop (.getProperties entity))))
+        (reduce (fn [props [k v]] (assoc props k (decode-prop v)))
+                {} (.getProperties entity))))
 
 
 (defn- ^String key->str 
