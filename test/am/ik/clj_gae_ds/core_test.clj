@@ -423,4 +423,12 @@
     (is (empty? (query-seq (query "parent"))))
     (is (empty? (query-seq (query "child"))))))
 
+(defdstest test-long-strings
+  (let [data (apply str (repeat 600 "a"))
+        kind "text"
+        entity (map-entity kind :data data)]
+    (ds-put entity)
+    (is (= data
+           (get-prop (ds-get (create-key kind 1)) :data)))))
+
 ;; (run-tests)

@@ -3,7 +3,7 @@
         [clojure.contrib.singleton])
   (:import [com.google.appengine.api.datastore 
             DatastoreServiceFactory DatastoreService 
-            Entity Key KeyFactory KeyRange
+            Entity Key KeyFactory KeyRange Text
             Query Query$FilterOperator Query$SortDirection 
             PreparedQuery FetchOptions FetchOptions$Builder 
             Cursor QueryResultList
@@ -54,6 +54,20 @@
   [^Key key]
   (.getKind key))
 
+(defn- encode-prop
+  "encodes a property if it is a String longer than 500 chars"
+  [obj]
+  (if (and (instance? String obj) (> (count obj) 500))
+    (Text. obj)
+    obj))
+
+(defn- decode-prop
+  "decodes a property to a String if it is a Text"
+  [prop]
+  (if (instance? Text prop)
+    (.getValue prop)
+    prop))
+
 (defn ^Entity map-entity
   "create Entity from map.  
    (map-entity \"person\" :name \"Bob\" :age 25)
@@ -78,14 +92,14 @@
         m (apply array-map (mapcat identity (dissoc init-map :keyname :parent)))
         ^Entity entity (apply create-entity ename entity-arity)]
     (doseq [e m]
-      (.setProperty entity (name (first e)) (last e)))
+      (.setProperty entity (name (first e)) (encode-prop (last e))))
     entity))
 
 (defn entity-map 
   "convert entity to map"
   [^Entity entity]
   (into {:keyname (.getName (.getKey entity)) :parent (.getParent entity)}
-        (.getProperties entity)))
+        (decode-prop (.getProperties entity))))
 
 
 (defn- ^String key->str 
@@ -97,12 +111,12 @@
 (defn get-prop   
   "get property"
   [^Entity entity ^String key]
-  (.getProperty entity (key->str key)))
+  (decode-prop (.getProperty entity (key->str key))))
 
 (defn set-prop   
   "set property"
   [^Entity entity key value]
-  (.setProperty entity (key->str key) value))
+  (.setProperty entity (key->str key) (encode-prop value)))
 
 ;; Query
 (defn ^Query query 
