@@ -202,7 +202,7 @@
 	 :query-seq-with-cursor (fn [pq fetch-options] 
 				  (let [^QueryResultList result-list (.asQueryResultList pq fetch-options)]
                                     {:result (lazy-seq result-list) :cursor ^Cursor (.getCursor result-list)})),
-	 :count-entities (fn [pq] (.countEntities pq))})
+	 :count-entities (fn [pq] (.countEntities pq (FetchOptions$Builder/withDefaults)))})
 
 (defn ^FetchOptions fetch-options 
   "return FetchOption which describe the limit, offset, 
