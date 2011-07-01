@@ -220,7 +220,7 @@
     (ds-put [p1 p2 p3 p4])
     (is (= 4 (count-entities (query "person"))))))
 
-(defdstest test-count-entities
+(defdstest test-count-entities-explicitly-prepared
   (let [p1 (map-entity "person" :name "Bob" :age 20)
         p2 (map-entity "person" :name "John" :age 22)
         p3 (map-entity "person" :name "Smith" :age 25)
