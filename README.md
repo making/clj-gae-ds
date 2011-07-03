@@ -2,7 +2,7 @@
 
 a datastore library on Google App Engine for Clojure
 
-Current version supports GAE SDK 1.3.5.
+Current version supports GAE SDK 1.5.1.
 
 ## Getting Started ##
 
@@ -14,17 +14,10 @@ $ lein test
 
 Add
 
-[am.ik/clj-gae-ds "0.2.1"]
+[am.ik/clj-gae-ds "0.3.0"]
 
 to your project.clj
 
-If you'd like to use latest version, then add
-
-[am.ik/clj-gae-ds "0.3.0-SNAPSHOT"]
-
-which requires over 1.2.0-master-SNAPSHOT of the version of working Clojure
-
-to use protocols.
 
 
 ## How To Use ##
