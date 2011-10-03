@@ -14,7 +14,7 @@ $ lein test
 
 Add
 
-[am.ik/clj-gae-ds "0.3.0"]
+[am.ik/clj-gae-ds "0.3.1"]
 
 to your project.clj
 

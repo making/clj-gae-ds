@@ -1,4 +1,4 @@
-(defproject am.ik/clj-gae-ds "0.3.0"
+(defproject am.ik/clj-gae-ds "0.3.1"
   :description "a datastore library on Google App Engine for Clojure"
   :repositories {"maven.seasar.org" "http://maven.seasar.org/maven2",}
   :dependencies [[org.clojure/clojure "1.2.1"]
@@ -7,4 +7,4 @@
   :dev-dependencies [[am.ik/clj-gae-testing "0.2.0"]
                      ;; [leiningen/lein-swank "1.2.0-SNAPSHOT"]
                      [lein-clojars "0.5.0-SNAPSHOT"]]
-  :namespaces [am.ik.clj-gae-ds.core])
+  :aot [am.ik.clj-gae-ds.core])
