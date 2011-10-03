@@ -241,7 +241,7 @@
 
 ;; Datestore
 
-(def ^{:doc "The current datastore transaction."} *transaction* nil)
+(def ^{:doc "The current datastore transaction."} ^:dynamic *transaction* nil)
 
 (defn ds-put 
   "put entity to datastore"
